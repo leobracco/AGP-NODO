@@ -4,7 +4,6 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
-#include <PID_AutoTune_v0.h>
 #include <LittleFS.h>
 #include "parametros.h"
 
