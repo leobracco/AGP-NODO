@@ -190,81 +190,80 @@ unsigned long GetAvgDuration()
 	interrupts();
 	return dursum / avgPulses;
 }
-
 void GetUPMflow()
 {
-	if (PulseCount)
+	if (PulseCount) // Verifica si se han recibido pulsos del sensor
 	{
-		noInterrupts();
-		CurrentCount = PulseCount;
-		PulseCount = 0;
-		CurrentDuration = Duration;
-		interrupts();
+		noInterrupts(); // Deshabilita las interrupciones para obtener una lectura precisa
+		CurrentCount = PulseCount; // Almacena el número de pulsos recibidos
+		PulseCount = 0; // Reinicia el contador de pulsos
+		CurrentDuration = Duration; // Almacena la duración de los pulsos
+		interrupts(); // Habilita las interrupciones
 
-		if (Sensor.UseMultiPulses)
+		if (Sensor.UseMultiPulses) // Verifica si el sensor está configurado para enviar múltiples pulsos por medición
 		{
-			// low ms/pulse, use pulses over time
-			if (FullCount)
+			// baja ms/pulso, usar pulsos en un intervalo de tiempo
+			if (FullCount) // Verifica si se ha recibido la cantidad completa de pulsos por medición
 			{
-				PPM = 60000000 / GetAvgDuration();
+				PPM = 60000000 / GetAvgDuration(); // Calcula la velocidad del flujo en unidades por minuto
 			}
 			else
 			{
-				PPM = 0;
+				PPM = 0; // Si no se ha recibido la cantidad completa de pulsos, la velocidad del flujo es cero
 			}
 		}
-		else
+		else // El sensor envía un solo pulso por medición
 		{
-			// high ms/pulse, use time for one pulse
-			if (CurrentDuration == 0)
+			// alta ms/pulso, usar tiempo para un pulso
+			if (CurrentDuration == 0) // Verifica si la duración del pulso es cero
 			{
-				PPM = 0;
+				PPM = 0; // Si la duración del pulso es cero, la velocidad del flujo es cero
 			}
 			else
 			{
-				unsigned long tmp = 6000000000 / CurrentDuration;
+				unsigned long tmp = 6000000000 / CurrentDuration; // Calcula la velocidad del flujo en unidades por minuto
 
-				// olympic average
-				Osum += tmp;
-				if (Omax < tmp) Omax = tmp;
-				if (Omin > tmp) Omin = tmp;
+				// media olímpica
+				Osum += tmp; // Acumula las lecturas de velocidad
+				if (Omax < tmp) Omax = tmp; // Almacena la velocidad máxima
+				if (Omin > tmp) Omin = tmp; // Almacena la velocidad mínima
 
-				Ocount++;
-				if (Ocount > 4)
+				Ocount++; // Incrementa el contador de lecturas
+				if (Ocount > 4) // Verifica si se han realizado cuatro lecturas
 				{
-					Osum -= Omax;
-					Osum -= Omin;
-					Oave = (float)Osum / 300.0;	// divide by 3 samples and divide by 100 for decimal place
-					Osum = 0;
-					Omax = 0;
-					Omin = 5000000000;
-					Ocount = 0;
+					Osum -= Omax; // Resta la velocidad máxima
+					Osum -= Omin; // Resta la velocidad mínima
+					Oave = (float)Osum / 300.0;	// divide entre 3 muestras y divide entre 100 para tener un lugar decimal
+					Osum = 0; // Reinicia el acumulador de lecturas
+					Omax = 0; // Reinicia la velocidad máxima
+					Omin = 5000000000; // Reinicia la velocidad mínima
+					Ocount = 0; // Reinicia el contador de lecturas
 				}
-				PPM = Oave;
+				PPM = Oave; // Asigna la velocidad promedio al resultado final
 			}
 		}
 
-		LastPulse = millis();
-		Sensor.TotalPulses += CurrentCount;
-	}
+			LastPulse = millis(); // Almacena el tiempo de la última medición
+	Sensor.TotalPulses += CurrentCount; // Acumula la cantidad total de pulsos contados
 
-	// check for no flow
-	if (millis() - LastPulse > 2000)
-	{
-		PPM = 0;
-		Osum = 0;
-		Oave = 0;
-		Ocount = 0;
-	}
-
-	// units per minute
-	if (Sensor.MeterCal > 0)
-	{
-		Sensor.UPM = (float)PPM / (float)Sensor.MeterCal;
-	}
-	else
-	{
-		Sensor.UPM = 0;
-	}
 }
 
+// Comprobar si no hay flujo de líquido
+if (millis() - LastPulse > 2000)
+{
+	PPM = 0;
+	Osum = 0;
+	Oave = 0;
+	Ocount = 0;
+}
+
+// Calcular unidades por minuto
+if (Sensor.MeterCal > 0)
+{
+	Sensor.UPM = (float)PPM / (float)Sensor.MeterCal;
+}
+else
+{
+	Sensor.UPM = 0;
+}
+}
