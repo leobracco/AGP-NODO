@@ -28,6 +28,4 @@ ParametrosPidConfig PidConfig = {
 };
 
 
-// Definir los pines del motor
-extern CytronMD Cytron_Motor;
-extern float speedKmH;
+

@@ -5,6 +5,7 @@
 #include "mqtt_connect.h"
 #include "config.h"
 #include "rate.h"
+#include "control.h"
 
 
 
@@ -26,5 +27,6 @@ void loop() {
     connectToMQTT(espClient, client, MQTT_SERVER, MQTT_USERNAME, MQTT_PASSWORD);
   }
   client.loop();
+  loop_control();
   // Tu código aquí
 }

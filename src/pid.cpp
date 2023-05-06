@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "config.h"
 #include <stdlib.h>
+#include <pid.h>
 unsigned long CurrentAdjustTime;
 float ErrorPercentLast;
 float ErrorPercentCum;

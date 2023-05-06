@@ -1,6 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 #include <stdint.h>
+
 #define WIFI_SSID "nombre_de_la_red_wifi"
 #define WIFI_PASSWORD "contraseña_de_la_red_wifi"
 
@@ -10,6 +11,9 @@
 #define MQTT_PASSWORD "contraseña_del_servidor_mqtt"
 #define MQTT_CLIENT_NAME "MOTOR-123"
 #define MQTT_TOPIC "/mi/topic"
+
+extern const uint16_t LOOP_TIME;      //in msec = 20hz
+extern uint32_t LoopLast;
 
 extern bool AutoOn;
 extern bool MasterOn;
@@ -59,4 +63,8 @@ typedef uint8_t byte;
 
 extern SensorConfig Sensor;
 extern ModuleConfig MDL;
+
+// Definir los pines del motor
+
+extern float speedKmH;
 #endif // CONFIG_H

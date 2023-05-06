@@ -26,7 +26,7 @@ SensorConfig Sensor = {
     .UseMultiPulses = false,
     .Debounce = 10
 };
-ModuleConfig module = {
+ModuleConfig MDL = {
   .ID = 1,
   .SensorCount = 2,
   .IPpart3 = 192,
@@ -38,3 +38,5 @@ ModuleConfig module = {
 };
 bool AutoOn = true;
 bool MasterOn = true;
+const uint16_t LOOP_TIME = 50;      //in msec = 20hz
+uint32_t LoopLast = LOOP_TIME;
