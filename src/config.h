@@ -1,7 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 #include <stdint.h>
-
+#include <LittleFS.h>
+#include <ArduinoJson.h>
 #define WIFI_SSID "nombre_de_la_red_wifi"
 #define WIFI_PASSWORD "contraseña_de_la_red_wifi"
 
@@ -19,7 +20,10 @@ extern bool AutoOn;
 extern bool MasterOn;
 
 typedef uint8_t byte;
-
+void iniciarLittleFS();
+DynamicJsonDocument loadConfig(const char* FileName);
+bool saveConfig(DynamicJsonDocument& json, const char* FileName);
+void ConfigPid();
 struct ModuleConfig
 {
     uint8_t ID;                // ID del módulo
@@ -53,10 +57,14 @@ struct ModuleConfig
 	byte BrakePoint;        // Punto de frenado del controlador PID
 	bool UseMultiPulses;    // FLAG que indica si se están usando múltiples pulsos para medir el flujo
 	uint8_t Debounce;       // Tiempo de debounce para el sensor de flujo
+    float AnchoLabor;
+    float DosisHa;
+    float GramoPulso;
 };
 
 
 extern SensorConfig Sensor;
+
 extern ModuleConfig MDL;
 
 // Definir los pines del motor

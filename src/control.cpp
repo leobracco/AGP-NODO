@@ -88,3 +88,12 @@ void AdjustFlow()
             }
            
 }
+float CalcularDosis() {
+  float velocidadMTS = speedKmH * 1000;
+  float segundosenCienMetros = 100 * 3600 / velocidadMTS;
+  float laborenCienMetros = Sensor.AnchoLabor * 100 / 10000;
+  float dosisCienmetros = laborenCienMetros * Sensor.DosisHa;
+  float dosisenSegundos = 60 * dosisCienmetros / segundosenCienMetros;
+  float DosisPulsos = dosisenSegundos / Sensor.GramoPulso;
+  return DosisPulsos;
+}
