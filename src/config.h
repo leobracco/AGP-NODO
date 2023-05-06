@@ -20,46 +20,41 @@ extern bool MasterOn;
 
 typedef uint8_t byte;
 
- struct ModuleConfig
+struct ModuleConfig
 {
-	uint8_t ID=1;
-	uint8_t SensorCount;        // up to 2 sensors
-	uint8_t	IPpart3;			// IP address, 3rd octet
-	uint8_t RelayOnSignal;	    // value that turns on relays
-	uint8_t FlowOnDirection;	// sets on value for flow valve or sets motor direction
-	uint8_t UseMCP23017;        // 0 use Nano pins for relays, 1 use MCP23017 for relays
-	uint8_t Relays[16];
-	uint8_t Debounce;			// minimum ms pin change, base debounce
+    uint8_t ID;                // ID del módulo
+    uint8_t FlowOnDirection;   // valor que activa la válvula de flujo o establece la dirección del motor
+    uint8_t Debounce;          // tiempo mínimo en ms para considerar que hay un cambio en el estado del pin (debounce)
 };
 
 
 
-  struct SensorConfig 
-{
-	uint8_t FlowPin;
-	uint8_t DirPin;
-	uint8_t PWMPin;
-	bool FlowEnabled;
-	float RateError;		// rate error X 1000
-	float UPM;				// upm X 1000
-	int pwmSetting;
-	uint32_t CommTime;
-	byte InCommand;			// command byte from RateController
-	byte ControlType;		// 0 standard, 1 combo close, 2 motor, 3 motor/weight, 4 fan
-	uint32_t TotalPulses;
-	float RateSetting;
-	float MeterCal;
-	float ManualAdjust;
-	float KP;
-	float KI;
-	float KD;
-	byte MinPWM;
-	byte MaxPWM;
-	byte Deadband;
-	byte BrakePoint;
-	bool UseMultiPulses;	// 0 - time for one pulse, 1 - average time for multiple pulses
-	uint8_t Debounce;
-} ;
+ struct SensorConfig {
+	uint8_t FlowPin;         // Pin del sensor de flujo
+	uint8_t DirPin;          // Pin de dirección del motor
+	uint8_t PWMPin;          // Pin de velocidad del motor
+	bool FlowEnabled;        // FLAG que indica si el sensor de flujo está habilitado
+	float RateError;        // Error de la velocidad actual con respecto a la velocidad objetivo
+	float UPM;               // Unidades por minuto (UPM) de la velocidad actual del motor
+	int pwmSetting;         // Configuración del PWM
+	uint32_t CommTime;       // Tiempo de la última comunicación con el controlador de velocidad
+	byte InCommand;         // Comando del controlador de velocidad recibido
+	byte ControlType;       // Tipo de control (0 estándar, 1 combinado, 2 motor, 3 motor/peso, 4 ventilador)
+	uint32_t TotalPulses;    // Total de pulsos del sensor de flujo
+	float RateSetting;      // Velocidad objetivo del motor en UPM
+	float MeterCal;         // Calibración del medidor
+	float ManualAdjust;     // Ajuste manual de la velocidad
+	float KP;               // Constante proporcional del controlador PID
+	float KI;               // Constante integral del controlador PID
+	float KD;               // Constante derivativa del controlador PID
+	byte MinPWM;            // Valor mínimo del PWM
+	byte MaxPWM;            // Valor máximo del PWM
+	byte Deadband;          // Banda muerta del controlador PID
+	byte BrakePoint;        // Punto de frenado del controlador PID
+	bool UseMultiPulses;    // FLAG que indica si se están usando múltiples pulsos para medir el flujo
+	uint8_t Debounce;       // Tiempo de debounce para el sensor de flujo
+};
+
 
 extern SensorConfig Sensor;
 extern ModuleConfig MDL;

@@ -11,13 +11,13 @@ void loop_control()
 		LoopLast = millis();
 		GetUPM();
 
-		for (int i = 0; i < MDL.SensorCount; i++)
-		{
-			Sensor.FlowEnabled = (millis() - Sensor.CommTime < 4000)
-				&& ((Sensor.RateSetting > 0 && MasterOn)
-					|| ((Sensor.ControlType == 4) && (Sensor.RateSetting > 0))
-						|| (!AutoOn && MasterOn));
-		}
+		
+			Sensor.FlowEnabled =    (millis() - Sensor.CommTime < 4000) && 
+                                    ((Sensor.RateSetting > 0 && MasterOn)|| 
+                                    ((Sensor.ControlType == 4) && 
+                                    (Sensor.RateSetting > 0))||
+                                    (!AutoOn && MasterOn));
+		
 
 
 		AdjustFlow();
@@ -57,10 +57,9 @@ void AutoControl()
 
 void ManualControl()
 {
-	for (int i = 0; i < MDL.SensorCount; i++)
-	{
+	
 		Sensor.pwmSetting = Sensor.ManualAdjust;
-	}
+	
 }
 void AdjustFlow()
 {

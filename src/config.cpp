@@ -28,12 +28,7 @@ SensorConfig Sensor = {
 };
 ModuleConfig MDL = {
   .ID = 1,
-  .SensorCount = 2,
-  .IPpart3 = 192,
-  .RelayOnSignal = LOW,
   .FlowOnDirection = HIGH,
-  .UseMCP23017 = 1,
-  .Relays = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
   .Debounce = 10
 };
 bool AutoOn = true;

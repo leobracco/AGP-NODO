@@ -28,5 +28,5 @@ void loop() {
   }
   client.loop();
   loop_control();
-  // Tu código aquí
+  
 }
