@@ -8,6 +8,7 @@ void loop_control()
 {
 	if (millis() - LoopLast >= LOOP_TIME)
 	{
+        Sensor.RateSetting=CalcularDosis();
 		LoopLast = millis();
 		GetUPM();
 
@@ -30,6 +31,7 @@ void loop_control()
 		{
 			ManualControl();
 		}
+        
 	}
 }
 
@@ -89,7 +91,7 @@ void AdjustFlow()
            
 }
 float CalcularDosis() {
-  float velocidadMTS = speedKmH * 1000;
+  float velocidadMTS = Sensor.speedKmH * 1000;
   float segundosenCienMetros = 100 * 3600 / velocidadMTS;
   float laborenCienMetros = Sensor.AnchoLabor * 100 / 10000;
   float dosisCienmetros = laborenCienMetros * Sensor.DosisHa;

@@ -75,6 +75,8 @@ void ConfigPid()
     Sensor.AnchoLabor= json["AnchoLabor"];
     Sensor.DosisHa= json["DosisHa"];
     Sensor.GramoPulso= json["GramoPulso"];
+    Sensor.speedKmH= json["speedKmH"];
+    
     
  
 }

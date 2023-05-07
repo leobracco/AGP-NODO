@@ -24,6 +24,7 @@
     "Debounce": 10,
     "AnchoLabor":8,
     "DosisHa":50,
-    "GramoPulso":0.015
+    "GramoPulso":0.015,
+    "speedKmH":0.00
   }
   

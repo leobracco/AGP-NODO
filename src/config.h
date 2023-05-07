@@ -60,6 +60,7 @@ struct ModuleConfig
     float AnchoLabor;
     float DosisHa;
     float GramoPulso;
+    float speedKmH;
 };
 
 
