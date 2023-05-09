@@ -28,11 +28,13 @@ float Oave;
 
 void GetUPMflow();
 void Pulsos();
-void ICACHE_RAM_ATTR setup_interrupciones()
+void  setup_interrupciones()
 {
+		Serial.print("PIN:");
+		Serial.println(Sensor.FlowPin);
     	attachInterrupt(digitalPinToInterrupt(Sensor.FlowPin), Pulsos, FALLING);
 }
-void Pulsos()
+void ICACHE_RAM_ATTR Pulsos()
 {
 	static unsigned long PulseTime;
 	unsigned long micronow;

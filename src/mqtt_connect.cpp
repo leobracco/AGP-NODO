@@ -13,11 +13,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void connectToMQTT(WiFiClient& espClient, PubSubClient& client, const char* MQTT_SERVER, const char* MQTT_USERNAME, const char* MQTT_PASSWORD) {
   client.setClient(espClient);
   client.setServer(MQTT_SERVER, 1883);
-  client.setCallback(callback);
+  //client.setCallback(callback);
 
   while (!client.connected()) {
     Serial.print("Conectando a MQTT Broker...");
-    if (client.connect("ESP8266Client", MQTT_USERNAME, MQTT_PASSWORD )) {
+    if (client.connect("ESP8266Client-pepe" )) {
       Serial.println("Conexión exitosa");
       client.subscribe("test/topic");
     } else {

@@ -1,7 +1,7 @@
 {
     "FlowPin": 5,
-    "DirPin": 6,
-    "PWMPin": 9,
+    "DirPin": 4,
+    "PWMPin": 0,
     "FlowEnabled": false,
     "RateError": 0.0,
     "UPM": 2000.0,

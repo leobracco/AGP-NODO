@@ -3,13 +3,13 @@
 #include <stdint.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
-#define WIFI_SSID "nombre_de_la_red_wifi"
-#define WIFI_PASSWORD "contraseña_de_la_red_wifi"
+#define WIFI_SSID "LB"
+#define WIFI_PASSWORD "1564santiago"
 
-#define MQTT_SERVER "direccion_del_servidor_mqtt"
+#define MQTT_SERVER "192.168.1.17"
 #define MQTT_PORT 1883
-#define MQTT_USERNAME "usuario_del_servidor_mqtt"
-#define MQTT_PASSWORD "contraseña_del_servidor_mqtt"
+#define MQTT_USERNAME ""
+#define MQTT_PASSWORD ""
 #define MQTT_CLIENT_NAME "MOTOR-123"
 #define MQTT_TOPIC "/mi/topic"
 
@@ -21,7 +21,8 @@ extern bool MasterOn;
 
 typedef uint8_t byte;
 void iniciarLittleFS();
-DynamicJsonDocument loadConfig(const char* FileName);
+//DynamicJsonDocument loadConfig(const char* FileName);
+String loadConfig(const char* FileName);
 bool saveConfig(DynamicJsonDocument& json, const char* FileName);
 void ConfigPid();
 struct ModuleConfig
