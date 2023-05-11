@@ -25,6 +25,8 @@
     "AnchoLabor":8,
     "DosisHa":50,
     "GramoPulso":0.015,
-    "speedKmH":0.00
+    "speedKmH":0.00,
+    "SensorSemilla":13,
+    "Section":1
   }
   

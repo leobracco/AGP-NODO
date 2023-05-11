@@ -28,11 +28,14 @@ float Oave;
 
 void GetUPMflow();
 void Pulsos();
+void Semillas();
 void  setup_interrupciones()
 {
 		Serial.print("PIN:");
 		Serial.println(Sensor.FlowPin);
     	attachInterrupt(digitalPinToInterrupt(Sensor.FlowPin), Pulsos, FALLING);
+		attachInterrupt(digitalPinToInterrupt(Sensor.SensorSemilla), Semillas, FALLING);
+		
 }
 void ICACHE_RAM_ATTR Pulsos()
 {
@@ -99,70 +102,9 @@ void ICACHE_RAM_ATTR Pulsos()
 	}
 }
 
-void ISR1()
+void ICACHE_RAM_ATTR Semillas()
 {
-	static unsigned long PulseTime;
-	unsigned long micronow;
-	unsigned long dur;
-
-	micronow = micros();
-	if (PulseTime > micronow)
-	{
-		dur = micronow - PulseTime;
-	}
-	else
-	{
-		dur = 0xFFFFFFFF + micronow - PulseTime;
-	}
-
-	if (dur > 1000000)
-	{
-		// the component was off so reset the values
-		avDurs = 0;
-		dur = 50000;
-		for (int i = 0; i < (avgPulses - 1); i++)
-		{
-			Durations[i] = 0;
-		}
-		PulseTime = micronow;
-		PulseCount++;
-		FullCount = false;
-	}
-
-	else if (dur > Sensor.Debounce * 1000)
-	{
-		PulseCount++;
-		// check to see if the dur value is too long like an interrupt was missed.
-		if ((dur > (1.5 * avDurs)) && (avDurs != 0))
-		{
-			Durations[DurCount] = avDurs;
-			Duration = avDurs;
-			dur = avDurs;
-		}
-		else
-		{
-			Durations[DurCount] = dur;
-			Duration = dur;
-		}
-
-		PulseTime = micronow;
-		if (DurCount == 0)
-		{
-			DurCount++;
-			avDurs = (Durations[avgPulses - 1] + dur) / 2;
-		}
-		else if (DurCount < (avgPulses - 1))
-		{
-			DurCount++;
-			avDurs = (Durations[DurCount - 1] + dur) / 2;
-		}
-		else
-		{
-			DurCount = 0;
-			avDurs = (Durations[DurCount - 1] + dur) / 2;
-			FullCount = true;
-		}
-	}
+	Serial.println("Cae semilla");
 }
 
 void GetUPM()

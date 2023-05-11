@@ -1,4 +1,5 @@
 #include "wifi_connect.h"
+#include "config.h"
 
 void connectToWiFi(const char* WIFI_SSID, const char* WIFI_PASSWORD) {
   Serial.print("Conectando a ");

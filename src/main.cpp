@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include "config.h"
 #include "wifi_connect.h"
 #include "mqtt_connect.h"
-#include "config.h"
+
 #include "rate.h"
 #include "control.h"
 #include <LittleFS.h>
@@ -44,17 +45,15 @@ void setup() {
   ConfigPid( );
   delay(1000);
   connectToWiFi(WIFI_SSID, WIFI_PASSWORD);
-  connectToMQTT(espClient, client, MQTT_SERVER, MQTT_USERNAME, MQTT_PASSWORD);
-  Serial.print("PIN en set:");
-  Serial.println(Sensor.FlowPin );
+  connectToMQTT(espClient, client );
   setup_interrupciones();
 }
 
 void loop() {
   if (!client.connected()) {
-    connectToMQTT(espClient, client, MQTT_SERVER, MQTT_USERNAME, MQTT_PASSWORD);
+    connectToMQTT(espClient, client);
   }
   client.loop();
-  //loop_control();
+  loop_control();
   
 }

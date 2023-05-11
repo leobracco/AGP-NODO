@@ -3,7 +3,7 @@
 
 #include <WiFiClient.h>
 #include <PubSubClient.h>
-
-void connectToMQTT(WiFiClient& espClient, PubSubClient& client, const char* MQTT_SERVER, const char* mqttUser, const char* mqttPassword);
+#include "config.h"
+void connectToMQTT(WiFiClient& espClient, PubSubClient& client);
 
 #endif

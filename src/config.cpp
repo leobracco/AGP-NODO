@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "config.h"
 #include <ArduinoJson.h>
+
 // Ejemplo de configuración de sensor
 void iniciarLittleFS()
 {
@@ -11,24 +12,6 @@ void iniciarLittleFS()
     }
 }
 
-/*DynamicJsonDocument loadConfig(const char* FileName) {
-  File configFile = LittleFS.open(FileName, "r");
-  if (!configFile) {
-    Serial.println("No se puede abrir el archivo en Load");
-
-  }
-
-  DynamicJsonDocument doc(1024);
-  auto error = deserializeJson(doc, configFile);
-  if (error) {
-    Serial.println("No se puede parsear el archivo");
- 
-  }
-
-  configFile.close();
-  
- return doc;
-}*/
 String loadConfig(const char* FileName) {
   String configContent = "";
   File configFile = LittleFS.open(FileName, "r");
@@ -99,7 +82,15 @@ if (error) {
     Sensor.DosisHa= json["DosisHa"];
     Sensor.GramoPulso= json["GramoPulso"];
     Sensor.speedKmH= json["speedKmH"];
+    Sensor.SensorSemilla= json["SensorSemilla"];
+    Sensor.Section= json["Section"];
     
+    
+
+    
+    int section = Sensor.Section; // Asignamos el valor de Sensor.Section a una variable entera
+
+    sprintf(mqtt_topic, "%s%d", MQTT_TOPIC, section); // Concatenamos MQTT_TOPIC con el valor de section y lo almacenamos en mqtt_topic
     
  
 }
