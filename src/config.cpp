@@ -2,6 +2,7 @@
 #include "config.h"
 #include <ArduinoJson.h>
 
+
 // Ejemplo de configuración de sensor
 void iniciarLittleFS()
 {
@@ -87,14 +88,26 @@ if (error) {
     
     
 
-    
-    int section = Sensor.Section; // Asignamos el valor de Sensor.Section a una variable entera
-
-    sprintf(mqtt_topic, "%s%d", MQTT_TOPIC, section); // Concatenamos MQTT_TOPIC con el valor de section y lo almacenamos en mqtt_topic
+  
     
  
 }
+void ConfigNetWork()
+ {
+    WifiConf.ssid="LB";
+    WifiConf.password="1564santiago";
+    WifiConf.hostnameOTA="192.168.0.10";
+    WifiConf.passwordOTA="tuspass";
 
+   //MQTTConf.brokerAddress="192.168.1.17";   // Dirección IP o nombre de dominio del broker MQTT
+   strncpy(MQTTConf.brokerAddress, "192.168.1.17", sizeof(MQTTConf.brokerAddress));
+    MQTTConf.port=1883;                 // Puerto del broker MQTT
+   strncpy(MQTTConf.clientID, "AGP-NODO-1", sizeof(MQTTConf.clientID));
+   strncpy(MQTTConf.topic, "/APG/NODO/", sizeof(MQTTConf.topic));
+    //MQTTConf.clientID="AGP-NODO-1";        // ID único del cliente MQTT
+   // MQTTConf.topic="/AGP/NODO/";           // Tópico MQTT que se utilizará para publicar y suscribirse a los mensajes
+
+}
 ModuleConfig MDL = {
   .ID = 1,
   .FlowOnDirection = HIGH,

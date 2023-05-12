@@ -1,11 +1,9 @@
-#include "mqtt_connect.h"
+#include "Arduino.h"
 #include "config.h"
-#define MQTT_PORT 1883
-const char* MQTT_USERNAME="";
-const char* MQTT_PASSWORD="";
-#define MQTT_CLIENT_NAME "MOTOR-123";
-#define MQTT_TOPIC "/agp/nodo/";
-const char* MQTT_SERVER="192.168.1.17";
+#include "mqtt_connect.h"
+
+
+
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Mensaje recibido [");
   Serial.print(topic);
@@ -18,14 +16,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 void connectToMQTT(WiFiClient& espClient, PubSubClient& client) {
   client.setClient(espClient);
-  client.setServer(MQTT_SERVER, 1883);
+  client.setServer(MQTTConf.brokerAddress, MQTTConf.port);
   //client.setCallback(callback);
 
   while (!client.connected()) {
     Serial.print("Conectando a MQTT Broker...");
     if (client.connect("ESP8266Client-pepe" )) {
       Serial.println("Conexión exitosa");
-      client.subscribe(mqtt_topic);
+      
+      client.subscribe(MQTTConf.topic);
     } else {
       Serial.print("Falló la conexión con el error ");
       Serial.print(client.state());

@@ -3,6 +3,6 @@
 
 #include <ESP8266WiFi.h>
 
-void connectToWiFi(const char* WIFI_SSID, const char* WIFI_PASSWORD);
+void connectToWiFi();
 
 #endif

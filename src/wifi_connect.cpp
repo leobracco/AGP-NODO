@@ -1,11 +1,12 @@
 #include "wifi_connect.h"
 #include "config.h"
 
-void connectToWiFi(const char* WIFI_SSID, const char* WIFI_PASSWORD) {
-  Serial.print("Conectando a ");
-  Serial.println(WIFI_SSID);
 
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+void connectToWiFi() {
+  Serial.print("Conectando a ");
+  Serial.println(WifiConf.ssid);
+
+  WiFi.begin(WifiConf.ssid, WifiConf.password);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
