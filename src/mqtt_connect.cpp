@@ -21,7 +21,7 @@ void connectToMQTT(WiFiClient& espClient, PubSubClient& client) {
 
   while (!client.connected()) {
     Serial.print("Conectando a MQTT Broker...");
-    if (client.connect("ESP8266Client-pepe" )) {
+    if (client.connect(MQTTConf.clientID )) {
       Serial.println("Conexión exitosa");
       
       client.subscribe(MQTTConf.topic);
