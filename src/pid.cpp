@@ -12,30 +12,34 @@ int PIDmotor()
 {
     float Result = 0;
     float ErrorPercent = 0;
-    if (Sensor.FlowEnabled && Sensor.RateSetting > 0)
+    if (Pid.FlowEnabled && Cal.RateSetting > 0)
     {
         Result = LastPWM;
-        ErrorPercent = Sensor.RateError / Sensor.RateSetting;
-        if (abs(ErrorPercent) > (float)Sensor.Deadband / 100.0)
+        ErrorPercent = Pid.RateError / Cal.RateSetting;
+        if (abs(ErrorPercent) > (float)Pid.Deadband / 100.0)
         {
-            Result += Sensor.KP * ErrorPercent / 25.5;
+            Result += Pid.KP * ErrorPercent / 25.5;
             unsigned long elapsedTime = millis() - CurrentAdjustTime;
             CurrentAdjustTime = millis();
             ErrorPercentCum += ErrorPercent * (elapsedTime * 0.001);
-            Integral += Sensor.KI * ErrorPercentCum;
-            if (Integral > 10) Integral = 10;
-            if (Integral < -10) Integral = -10;
-            if (Sensor.KI == 0)
+            Integral += Pid.KI * ErrorPercentCum;
+            if (Integral > 10)
+                Integral = 10;
+            if (Integral < -10)
+                Integral = -10;
+            if (Pid.KI == 0)
             {
                 Integral = 0;
                 ErrorPercentCum = 0;
             }
             Result += Integral;
-            //add in derivative term to dampen effect of the correction.
-            Result += (float)Sensor.KD * (ErrorPercent - ErrorPercentLast) / (elapsedTime * 0.001) * 0.001;
+            // add in derivative term to dampen effect of the correction.
+            Result += (float)Pid.KD * (ErrorPercent - ErrorPercentLast) / (elapsedTime * 0.001) * 0.001;
             ErrorPercentLast = ErrorPercent;
-            if (Result > Sensor.MaxPWM) Result = (float)Sensor.MaxPWM;
-            if (Result < Sensor.MinPWM) Result = (float)Sensor.MinPWM;
+            if (Result > Motor.MaxPWM)
+                Result = (float)Motor.MaxPWM;
+            if (Result < Motor.MinPWM)
+                Result = (float)Motor.MinPWM;
         }
     }
     else

@@ -6,96 +6,90 @@
 #include <pid.h>
 void loop_control()
 {
-	if (millis() - LoopLast >= LOOP_TIME)
-	{
-        Sensor.RateSetting=CalcularDosis();
-		LoopLast = millis();
-		GetUPM();
+    if (millis() - LoopLast >= LOOP_TIME)
+    {
+        Cal.RateSetting = CalcularDosis();
+        // Serial.print("RateSetting");
+        // Serial.println(Motor.RateSetting);
+        LoopLast = millis();
+        GetUPM();
 
-		
-			Sensor.FlowEnabled =    (millis() - Sensor.CommTime < 4000) && 
-                                    ((Sensor.RateSetting > 0 && MasterOn)|| 
-                                    ((Sensor.ControlType == 4) && 
-                                    (Sensor.RateSetting > 0))||
-                                    (!AutoOn && MasterOn));
-		
+        Pid.FlowEnabled = ((Cal.RateSetting > 0 && MasterOn) ||
+                           ((Motor.ControlType == 4) &&
+                            (Cal.RateSetting > 0)) ||
+                           (!AutoOn && MasterOn));
 
+        AdjustFlow();
 
-		AdjustFlow();
-
-		if (AutoOn)
-		{
-			AutoControl();
-		}
-		else
-		{
-			ManualControl();
-		}
-        
-	}
+        if (AutoOn)
+        {
+            AutoControl();
+        }
+        else
+        {
+            ManualControl();
+        }
+    }
 }
 
 void AutoControl()
 {
-	
-		Sensor.RateError = Sensor.RateSetting - Sensor.UPM;
 
-		switch (Sensor.ControlType)
-		{
-		case 2:
-		case 3:
-		case 4:
-			// motor control
-			Sensor.pwmSetting = PIDmotor();
-			break;
+    Pid.RateError = Cal.RateSetting - Cal.UPM;
 
-		default:
-			// valve control
-			Sensor.pwmSetting = PIDmotor();
-			break;
-		}
-	
+    switch (Motor.ControlType)
+    {
+    case 2:
+    case 3:
+    case 4:
+        // motor control
+        Pid.pwmSetting = PIDmotor();
+        break;
+
+    default:
+        // valve control
+        Pid.pwmSetting = PIDmotor();
+        break;
+    }
 }
 
 void ManualControl()
 {
-	
-		Sensor.pwmSetting = Sensor.ManualAdjust;
-	
+
+    Pid.pwmSetting = Cal.ManualAdjust;
 }
 void AdjustFlow()
 {
-    
-        
-            // motor control
-            if (Sensor.FlowEnabled)
-            {
-                if (Sensor.pwmSetting >= 0)
-                {
-                    //increase
-                    digitalWrite(Sensor.DirPin, MDL.FlowOnDirection);
-                    analogWrite(Sensor.PWMPin, Sensor.pwmSetting);
-                }
-                else
-                {
-                    //decrease
-                    digitalWrite(Sensor.DirPin, !MDL.FlowOnDirection);
-                    analogWrite(Sensor.PWMPin, -Sensor.pwmSetting);	// offsets the negative pwm value
-                }
-            }
-            else
-            {
-                // stop motor
-                analogWrite(Sensor.PWMPin, 0);
-            }
-           
+
+    // motor control
+    if (Pid.FlowEnabled)
+    {
+        if (Pid.pwmSetting >= 0)
+        {
+            // increase
+            digitalWrite(Motor.DirPin, Pid.FlowOnDirection);
+            analogWrite(Motor.PWMPin, Pid.pwmSetting);
+        }
+        else
+        {
+            // decrease
+            digitalWrite(Motor.DirPin, !Pid.FlowOnDirection);
+            analogWrite(Motor.PWMPin, -Pid.pwmSetting); // offsets the negative pwm value
+        }
+    }
+    else
+    {
+        // stop motor
+        analogWrite(Motor.PWMPin, 0);
+    }
 }
-float CalcularDosis() {
-  float velocidadMTS = Sensor.speedKmH * 1000;
-  float segundosenCienMetros = 100 * 3600 / velocidadMTS;
-  float laborenCienMetros = Sensor.AnchoLabor * 100 / 10000;
-  float dosisCienmetros = laborenCienMetros * Sensor.DosisHa;
-  float dosisenSegundos = 60 * dosisCienmetros / segundosenCienMetros;
-  float DosisPulsos = dosisenSegundos / Sensor.GramoPulso;
-  return DosisPulsos;
+float CalcularDosis()
+{
+    float velocidadMTS = speedKmH * 1000;
+    float segundosenCienMetros = 100 * 3600 / velocidadMTS;
+    float laborenCienMetros = Cal.Working_Width * 100 / 10000;
+    float dosisCienmetros = laborenCienMetros * Cal.DosePerUnit;
+    float dosisenSegundos = 60 * dosisCienmetros / segundosenCienMetros;
+    float DosisPulsos = dosisenSegundos / Cal.DosePerPulse;
+    return DosisPulsos;
 }

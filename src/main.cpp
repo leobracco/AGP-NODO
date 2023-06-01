@@ -1,59 +1,114 @@
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+
 #include <PubSubClient.h>
+
+#include <agp_webserver.h>
+
 #include "config.h"
 #include "wifi_connect.h"
 #include "mqtt_connect.h"
-
 #include "rate.h"
 #include "control.h"
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 
+#include <WiFiUdp.h>
+
+
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-SensorConfig Sensor;
-void listAllFilesInDir(String dir_path)
+
+
+
+PidConfig Pid;
+CalConfig Cal;
+MotorConfig Motor;
+MQTTConfig MQTTConf;
+WifiConfig WifiConf;
+NodoConfig Nodo;
+char mqtt_server[40] = "192.168.1.17";
+char mqtt_port[6] = "1883";
+char mqtt_user[20];
+char mqtt_pass[20];
+
+
+
+bool erase = false;
+
+void setup()
 {
-	Dir dir = LittleFS.openDir(dir_path);
-	while(dir.next()) {
-		if (dir.isFile()) {
-			// print file names
-			Serial.print("File: ");
-			Serial.println(dir_path + dir.fileName());
-		}
-		if (dir.isDirectory()) {
-			// print directory names
-			Serial.print("Dir: ");
-			Serial.println(dir_path + dir.fileName() + "/");
-			// recursive file listing inside new directory
-			listAllFilesInDir(dir_path + dir.fileName() + "/");
-		}
-	}
-}
-void setup() {
   Serial.begin(115200);
   delay(1000);
+
+  if (LittleFS.begin())
+  {
+    Serial.println(F("done."));
+  }
+  else
+  {
+    Serial.println(F("fail."));
+  }
+  delay(1000);
+  if (erase)
+  {
+
+    delay(2000);
+    ESP.restart();
+  }
+
+  strcpy(Nodo.Version, "1.0.0");
+  Nodo.Version[sizeof(Nodo.Version) - 1] = '\0';
+  uint32_t chipId = 0;
+  bool res;
  
-  if (LittleFS.begin()) {
-        Serial.println(F("done."));
-    } else {
-        Serial.println(F("fail."));
-    }
+  Serial.printf("ESP32 Chip model = %s Rev %d\n", ESP.getChipModel(), ESP.getChipRevision());
+  Serial.printf("This chip has %d cores\n", ESP.getChipCores());
+  Serial.print("Chip ID: ");
+  Serial.println(chipId);
+
+  sprintf(MQTTConf.ClientID, "AGP-NODO-%d", ESP.getChipModel());
+  
+
+  delay(2000);
+  ConfigureWifi();
+
+  ConfigureMqtt();
+  ConfigureNodo();
+
+  ConfigPid();
+  ConfigMotor();
+  ConfigCalibracion();
+  // ConfigNetWork();
   delay(1000);
-  ConfigPid( );
-  delay(1000);
-  connectToWiFi(WIFI_SSID, WIFI_PASSWORD);
-  connectToMQTT(espClient, client );
-  setup_interrupciones();
+
+  //if (connectToWiFi())
+  if (enableAPWiFi())
+  {
+    Serial.print("Conectado a la red:");
+    Serial.println(WifiConf.SSID);
+    Serial.print("Con la IP:");
+     Serial.println(WiFi.localIP());
+  }
+  else 
+  {
+    Serial.println("\nNo se pudo conectar al WiFi en 10 segundos.");
+  }
+  
+  setupServer();
+  //connectToMQTT(espClient, client);
+  //setup_interrupciones();
 }
 
-void loop() {
-  if (!client.connected()) {
+void loop()
+{
+   server.handleClient();
+  
+  /*if (!client.connected())
+  {
     connectToMQTT(espClient, client);
   }
   client.loop();
   loop_control();
-  
+  */
 }

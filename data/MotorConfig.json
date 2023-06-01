@@ -1,0 +1,7 @@
+{
+  "ControlType": 2,
+  "DirPin": 4,
+  "PWMPin": 5,
+  "MinPWM": 64,
+  "MaxPWM": 200
+}
