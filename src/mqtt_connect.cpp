@@ -65,10 +65,8 @@ void callback(char *topic, byte *payload, unsigned int length)
   if (strcmp(topic, topicReset) == 0)
   {
 
-    
-    
     delay(2000);
-    ESP.restart(); 
+    ESP.restart();
   }
   char topicPID[50];
   sprintf(topicPID, "/AGP-APP/NODO/%d/PID", std::stoi(Nodo.IdNodo));
@@ -99,7 +97,7 @@ void connectToMQTT(WiFiClient &espClient, PubSubClient &client)
   client.setServer(MQTTConf.BrokerAddress, atoi(MQTTConf.Port));
   client.setCallback(callback);
 
-  while (!client.connected())
+  if (!client.connected())
   {
     Serial.print("Conectando a MQTT Broker...");
     if (client.connect(MQTTConf.ClientID))
@@ -125,4 +123,45 @@ void connectToMQTT(WiFiClient &espClient, PubSubClient &client)
       delay(5000);
     }
   }
+}
+
+void SendNodo(PubSubClient &client)
+{
+
+  // Convertir la estructura en un objeto JSON
+  StaticJsonDocument<200> jsonDocument;
+  jsonDocument["IdNodo"] = Nodo.IdNodo;
+  jsonDocument["IdSection"] = Nodo.IdSection;
+  jsonDocument["IdSeed"] = Nodo.IdSeed;
+  jsonDocument["Version"] = Nodo.Version;
+  jsonDocument["SeedPin"] = Nodo.SeedPin;
+
+  // Convertir el objeto JSON a una cadena JSON
+  char jsonString[200];
+  serializeJson(jsonDocument, jsonString);
+  char topic[50];
+  sprintf(topic, "/NODO/%d/CONFIG", std::stoi(Nodo.IdNodo));
+  const char *topicChar = topic;
+  // Publicar el mensaje MQTT
+  client.publish(topicChar, jsonString);
+}
+
+void SendMotor(PubSubClient &client)
+{
+
+  StaticJsonDocument<768> json;
+
+  json["ControlType"] = Motor.ControlType;
+  json["DirPin"] = Motor.DirPin;
+  json["MaxPWM"] = Motor.MaxPWM;
+  json["MinPWM"] = Motor.MinPWM;
+  json["PWMPin"] = Motor.PWMPin;
+  // Convertir el objeto JSON a una cadena JSON
+  char jsonString[200];
+  serializeJson(json, jsonString);
+  char topic[50];
+  sprintf(topic, "/NODO/%d/MOTOR", std::stoi(Nodo.IdNodo));
+  const char *topicChar = topic;
+  // Publicar el mensaje MQTT
+  client.publish(topicChar, jsonString);
 }

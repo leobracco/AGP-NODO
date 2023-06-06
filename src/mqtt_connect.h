@@ -5,5 +5,6 @@
 #include <PubSubClient.h>
 
 void connectToMQTT(WiFiClient& espClient, PubSubClient& client);
-
+void SendNodo(PubSubClient& client);
+void enviarEstructuraMQTT(PubSubClient &client);
 #endif

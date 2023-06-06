@@ -163,7 +163,6 @@ void ConfigureMqtt()
     return;
   }
 
-
   strcpy(MQTTConf.BrokerAddress, json["BrokerAddress"]);
   strcpy(MQTTConf.Port, json["Port"]);
 }
@@ -184,8 +183,36 @@ void ConfigureWifi()
   }
   strcpy(WifiConf.SSID, json["SSID"]);
   strcpy(WifiConf.Password, json["Password"]);
-  strcpy(WifiConf.UrlOTA, json["UrlOTA"]);
-  strcpy(WifiConf.PasswordOTA, json["PasswordOTA"]);
+  // strcpy(WifiConf.UrlOTA, json["UrlOTA"]);
+  // strcpy(WifiConf.PasswordOTA, json["PasswordOTA"]);
+}
+void ResetConfig()
+{
+   DynamicJsonDocument doc(256);
+   DynamicJsonDocument docmqtt(256);
+
+  doc["SSID"] = "-";
+  doc["Password"] = "-";
+  docmqtt["BrokerAddress"] = "192.168.1.1";
+  docmqtt["Port"] = "1883";
+
+  if (saveConfig(doc, "/WifiConfig.json"))
+  {
+    Serial.print("Config Save");
+
+    strcpy(WifiConf.SSID, doc["SSID"]);
+    strcpy(WifiConf.Password, doc["Password"]);
+  }
+  if (saveConfig(docmqtt, "/MqttConfig.json"))
+  {
+    Serial.print("ConfigMqtt Save");
+
+    strcpy(MQTTConf.BrokerAddress, docmqtt["BrokerAddress"]);
+    strcpy(MQTTConf.Port, docmqtt["Port"]);
+  }
+  
+  delay(1000);
+  ESP.restart();
 }
 bool AutoOn = true;
 bool MasterOn = true;

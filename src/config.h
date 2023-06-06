@@ -23,7 +23,7 @@ void ConfigNetWork();
 void ConfigureMqtt();
 void ConfigureNodo();
 void ConfigureWifi();
-
+void ResetConfig();
 
 struct NodoConfig
 {
@@ -39,7 +39,6 @@ struct WifiConfig
 	char SSID[40];
 	char Password[40];
 	char UrlOTA[100];
-	char PasswordOTA[40];
 };
 struct MQTTConfig
 {

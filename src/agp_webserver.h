@@ -10,6 +10,7 @@
 
 void setupServer();
 void handleRoot();
+void handleSave();
 void hexStringToString();
 extern WebServer server; 
 #endif
