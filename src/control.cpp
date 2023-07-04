@@ -1,101 +1,50 @@
 #include <Arduino.h>
 #include "config.h"
+#include <pid.h>
 #include "control.h"
 #include "rate.h"
 #include <stdlib.h>
-#include <pid.h>
+
 void loop_control()
 {
-	if (millis() - LoopLast >= LOOP_TIME)
-	{
-        Sensor.RateSetting=CalcularDosis();
-		LoopLast = millis();
-		GetUPM();
+    loop_pid();
+    if (millis() - LoopLast >= LOOP_TIME)
+    {
+         Cal.SetPoint = CalcularDosis();
 
-		
-			Sensor.FlowEnabled =    (millis() - Sensor.CommTime < 4000) && 
-                                    ((Sensor.RateSetting > 0 && MasterOn)|| 
-                                    ((Sensor.ControlType == 4) && 
-                                    (Sensor.RateSetting > 0))||
-                                    (!AutoOn && MasterOn));
-		
-
-
-		AdjustFlow();
-
-		if (AutoOn)
-		{
-			AutoControl();
-		}
-		else
-		{
-			ManualControl();
-		}
+        loop_rate();
+      
+            
+      
         
-	}
+        LoopLast = millis();
+        // GetUPM();
+       
+        Pid.FlowEnabled =
+            ((Cal.SetPoint > 0 && MasterOn) ||
+             ((Motor.ControlType == 4) &&
+              (Cal.SetPoint > 0)) ||
+             (!AutoOn && MasterOn));
+        if (Cal.SetPoint > 0)
+            analogWrite(18, output);
+        else
+            analogWrite(18, 0);
+    }
 }
 
-void AutoControl()
+void setup_control()
 {
-	
-		Sensor.RateError = Sensor.RateSetting - Sensor.UPM;
-
-		switch (Sensor.ControlType)
-		{
-		case 2:
-		case 3:
-		case 4:
-			// motor control
-			Sensor.pwmSetting = PIDmotor();
-			break;
-
-		default:
-			// valve control
-			Sensor.pwmSetting = PIDmotor();
-			break;
-		}
-	
+    pinMode(5, OUTPUT);
+    pinMode(18, OUTPUT);
 }
-
-void ManualControl()
+float CalcularDosis()
 {
-	
-		Sensor.pwmSetting = Sensor.ManualAdjust;
-	
-}
-void AdjustFlow()
-{
-    
-        
-            // motor control
-            if (Sensor.FlowEnabled)
-            {
-                if (Sensor.pwmSetting >= 0)
-                {
-                    //increase
-                    digitalWrite(Sensor.DirPin, MDL.FlowOnDirection);
-                    analogWrite(Sensor.PWMPin, Sensor.pwmSetting);
-                }
-                else
-                {
-                    //decrease
-                    digitalWrite(Sensor.DirPin, !MDL.FlowOnDirection);
-                    analogWrite(Sensor.PWMPin, -Sensor.pwmSetting);	// offsets the negative pwm value
-                }
-            }
-            else
-            {
-                // stop motor
-                analogWrite(Sensor.PWMPin, 0);
-            }
-           
-}
-float CalcularDosis() {
-  float velocidadMTS = Sensor.speedKmH * 1000;
-  float segundosenCienMetros = 100 * 3600 / velocidadMTS;
-  float laborenCienMetros = Sensor.AnchoLabor * 100 / 10000;
-  float dosisCienmetros = laborenCienMetros * Sensor.DosisHa;
-  float dosisenSegundos = 60 * dosisCienmetros / segundosenCienMetros;
-  float DosisPulsos = dosisenSegundos / Sensor.GramoPulso;
-  return DosisPulsos;
+    float velocidadMTS = speedKmH * 1000;
+    float segundosenCienMetros = 100 * 3600 / velocidadMTS;
+    float laborenCienMetros = Cal.Working_Width * 100 / 10000;
+    float dosisCienmetros = laborenCienMetros * Cal.dosagePerHectare;
+    float dosisenSegundos = 60 * dosisCienmetros / segundosenCienMetros;
+    float DosisPulsos = dosisenSegundos / Cal.MeterCal;
+
+    return DosisPulsos;
 }

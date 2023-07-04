@@ -1,8 +1,9 @@
 #ifndef WIFI_CONNECT_H
 #define WIFI_CONNECT_H
 
-#include <ESP8266WiFi.h>
+#include <WiFi.h>
 
-void connectToWiFi();
+bool connectToWiFi();
+bool enableAPWiFi();
 
 #endif

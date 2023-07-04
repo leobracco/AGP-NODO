@@ -1,18 +1,37 @@
 #include "wifi_connect.h"
 #include "config.h"
 
+bool connectToWiFi()
+{
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WifiConf.SSID, WifiConf.Password);
+  Serial.print("Conectando al WiFi...");
 
-void connectToWiFi() {
-  Serial.print("Conectando a ");
-  Serial.println(WifiConf.ssid);
+  unsigned long startTime = millis(); // Tiempo de inicio de la conexión
 
-  WiFi.begin(WifiConf.ssid, WifiConf.password);
-
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print('.');
     delay(1000);
-    Serial.print(".");
+
+    // Verificar si ha pasado más de 10 segundos
+    if (millis() - startTime > 10000)
+    {
+
+      return false;
+    }
   }
 
-  Serial.println("");
-  Serial.println("Conexión WiFi exitosa");
+  Serial.println("\nConectado al WiFi.");
+  return true;
+}
+
+bool enableAPWiFi()
+{
+
+  WiFi.mode(WIFI_AP);
+
+  Serial.print("AP on");
+
+  return true;
 }
