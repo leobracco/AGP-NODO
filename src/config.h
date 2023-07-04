@@ -54,21 +54,25 @@ struct PidConfig
 	bool FlowEnabled;		 // FLAG que indica si el sensor de flujo está habilitado
 	float RateError;		 // Error de la velocidad actual con respecto a la velocidad objetivo
 	uint8_t Debounce;		 // Tiempo de debounce para el sensor de flujo
-	float KP;				 // Constante proporcional del controlador PID
-	float KI;				 // Constante integral del controlador PID
-	float KD;				 // Constante derivativa del controlador PID
-	byte Deadband;			 // Banda muerta del controlador PID
+	double KP;				 // Constante proporcional del controlador PID
+	double KI;				 // Constante integral del controlador PID
+	double KD;				 // Constante derivativa del controlador PID
+	float Deadband;			 // Banda muerta del controlador PID
 	byte BrakePoint;		 // Punto de frenado del controlador PID
 	bool UseMultiPulses;	 // FLAG que indica si se están usando múltiples pulsos para medir el flujo
 	uint8_t FlowOnDirection; // valor que activa la válvula de flujo o establece la dirección del motor
 	uint8_t FlowPin;		 // Pin del sensor de flujo
-	byte pwmSetting;
+	int pwmSetting;
+	uint32_t PulsePerRev;
+	float IntegralUpperLimit;
+	float IntegralLowerLimit;
+	float DerivativeFilter;
 	
 };
 
 struct CalConfig
 {
-	float RateSetting;	  // Velocidad objetivo del motor en UPM
+	double SetPoint;	  // Velocidad objetivo del motor en UPM
 	uint32_t TotalPulses; // Total de pulsos del sensor de flujo
 	float MeterCal;		  // Calibración del medidor
 	float ManualAdjust;	  // Ajuste manual de la velocidad
@@ -76,6 +80,8 @@ struct CalConfig
 	float Working_Width;
 	float DosePerPulse;
 	float DosePerUnit;
+	float dosagePerHectare;
+	
 };
 
 struct MotorConfig
@@ -84,8 +90,8 @@ struct MotorConfig
 	byte ControlType; // Tipo de control (0 estándar, 1 combinado, 2 motor, 3 motor/peso, 4 ventilador)
 	uint8_t DirPin;	  // Pin de dirección del motor
 	uint8_t PWMPin;	  // Pin de velocidad del motor
-	byte MinPWM;	  // Valor mínimo del PWM
-	byte MaxPWM;	  // Valor máximo del PWM
+	float MinPWM;	  // Valor mínimo del PWM
+	float MaxPWM;	  // Valor máximo del PWM
 };
 
 extern PidConfig Pid;

@@ -13,6 +13,8 @@
 #include <ArduinoJson.h>
 #include <led.h>
 #include <boton.h>
+#include <update.h>
+#include <pid.h>
 
 #include <WiFiUdp.h>
 
@@ -92,7 +94,7 @@ void setup()
 
   if (connectToWiFi())
   {
-    
+
     WifiRed.off();
     WifiGreen.on();
     Serial.print("Conectado a la red:");
@@ -100,11 +102,12 @@ void setup()
     Serial.print("Con la IP:");
     Serial.println(WiFi.localIP());
     isConnect = true;
+    /// update();
   }
   else
   {
     enableAPWiFi();
-    
+
     Serial.println("\nNo se pudo conectar al WiFi en 10 segundos.");
   }
 
@@ -112,13 +115,19 @@ void setup()
     setupServer();
   else
   {
-    //connectToMQTT(espClient, client);
-    setup_interrupciones();
+    // connectToMQTT(espClient, client);
+    // setup_interrupciones();
+    Serial.println("COnfiguracion de interrupciones");
+    setup_rate();
+    setup_pid();
+    setup_control();
   }
 }
-
+int previousStateA = LOW;
+int previousStateB = LOW;
 void loop()
 {
+
   if (buttonPress.loop())
   {
     if (isConnect && client.connected())
@@ -161,8 +170,11 @@ void loop()
       WifiGreen.on();
 
       client.loop();
+
       loop_control();
+      
+
+      // Calculate RPM every second
     }
   }
-  
 }

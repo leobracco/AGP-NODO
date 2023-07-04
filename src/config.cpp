@@ -74,12 +74,16 @@ void ConfigPid()
   Pid.FlowEnabled = json["FlowEnabled"];
   Pid.FlowOnDirection = json["FlowOnDirection"];
   Pid.FlowPin = json["FlowPin"];
-  Pid.KD = json["KD"];
-  Pid.KP = json["KP"];
-  Pid.KI = json["KI"];
+  Pid.KP = json["KP"].as<double>();
+  Pid.KI = json["KI"].as<double>();
+  Pid.KD = json["KD"].as<double>();
   Pid.pwmSetting = json["pwmSetting"];
   Pid.RateError = json["RateError"];
   Pid.UseMultiPulses = json["UseMultiPulses"];
+  Pid.PulsePerRev = 600;
+  Pid.IntegralUpperLimit = json["IntegralUpperLimit"];
+  Pid.IntegralLowerLimit = json["IntegralLowerLimit"];
+  Pid.DerivativeFilter = json["DerivativeFilter"];
 }
 /**********************Carga las variables de Calibracion desde el Archivo CalConfig.json*/
 void ConfigCalibracion()
@@ -99,11 +103,12 @@ void ConfigCalibracion()
 
   Cal.ManualAdjust = json["ManualAdjust"];
   Cal.MeterCal = json["MeterCal"];
-  Cal.RateSetting = json["RateSetting"];
+  Cal.SetPoint = json["SetPoint"];
   Cal.TotalPulses = json["TotalPulses"];
   Cal.UPM = json["UPM"];
   Cal.Working_Width = json["Working_Width"];
-  Cal.DosePerUnit = json["DosePerUnit"];
+  Cal.DosePerUnit = 20 / 600;
+  Cal.dosagePerHectare = 80000;
 }
 /**********************Carga las variables del Motor desde el Archivo MotorConfig.json*/
 void ConfigMotor()
@@ -122,9 +127,9 @@ void ConfigMotor()
   }
   Motor.ControlType = json["ControlType"];
   Motor.DirPin = json["DirPin"];
-  Motor.MaxPWM = json["MaxPWM"];
-  Motor.MinPWM = json["MinPWM"];
   Motor.PWMPin = json["PWMPin"];
+  Motor.MinPWM = json["MinPWM"];
+  Motor.MaxPWM = json["MaxPWM"];
 }
 /**********************Carga las variables del Nodo desde el Archivo NodoConfig.json*/
 void ConfigureNodo()
@@ -188,8 +193,8 @@ void ConfigureWifi()
 }
 void ResetConfig()
 {
-   DynamicJsonDocument doc(256);
-   DynamicJsonDocument docmqtt(256);
+  DynamicJsonDocument doc(256);
+  DynamicJsonDocument docmqtt(256);
 
   doc["SSID"] = "-";
   doc["Password"] = "-";
@@ -210,12 +215,12 @@ void ResetConfig()
     strcpy(MQTTConf.BrokerAddress, docmqtt["BrokerAddress"]);
     strcpy(MQTTConf.Port, docmqtt["Port"]);
   }
-  
+
   delay(1000);
   ESP.restart();
 }
 bool AutoOn = true;
-bool MasterOn = true;
+bool MasterOn = false;
 const uint16_t LOOP_TIME = 50; // in msec = 20hz
 uint32_t LoopLast = LOOP_TIME;
-float speedKmH = 0;
+float speedKmH;

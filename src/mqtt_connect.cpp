@@ -1,6 +1,8 @@
 #include "Arduino.h"
 #include "config.h"
 #include "mqtt_connect.h"
+#include "control.h"
+#include "pid.h"
 
 unsigned long hash(const char *str)
 {
@@ -50,6 +52,22 @@ void callback(char *topic, byte *payload, unsigned int length)
     Serial.print("Angulo de giro");
     Serial.println(angulo);
   }
+
+  char topicMotor[50];
+  sprintf(topicMotor, "/AGP-APP/NODO/%d/MOTOR", std::stoi(Nodo.IdNodo));
+  if (strcmp(topic, topicMotor) == 0)
+  {
+
+    if (saveConfig(doc, "/MotorConfig.json"))
+    {
+      Motor.ControlType = doc["ControlType"];
+      Motor.DirPin = doc["DirPin"];
+      Motor.MaxPWM = doc["MaxPWM"];
+      Motor.MinPWM = doc["MinPWM"];
+      Motor.PWMPin = doc["PWMPin"];
+       pid.setOutputRange(Motor.MinPWM, Motor.MaxPWM);
+    }
+  }
   char topicCal[50];
   sprintf(topicCal, "/AGP-APP/NODO/%d/CALIBRACION", std::stoi(Nodo.IdNodo));
   if (strcmp(topic, topicCal) == 0)
@@ -59,6 +77,38 @@ void callback(char *topic, byte *payload, unsigned int length)
     {
       Serial.print("CAl");
     }
+  }
+  char topicLive[50];
+  sprintf(topicLive, "/AGP-APP/NODO/%d/LIVE", std::stoi(Nodo.IdNodo));
+  if (strcmp(topic, topicLive) == 0)
+  {
+
+    if (saveConfig(doc, "/PidConfig.json"))
+    {
+      Serial.print("Config PID");
+      Pid.FlowEnabled = false;
+      Pid.RateError = 0;
+      Pid.Debounce = 0;
+      Pid.KP = doc["KP"].as<double>();
+      Pid.KI = doc["KI"].as<double>();
+      Pid.KD = doc["KD"].as<double>();
+      Pid.Deadband = doc["Deadband"];
+      Pid.BrakePoint = 0;
+      Pid.UseMultiPulses = true;
+      Pid.FlowOnDirection = LOW;
+      Pid.FlowPin = 21;
+      Pid.pwmSetting = 0;
+      pid.setGains(Pid.KP, Pid.KI, Pid.KD); 
+      pid.reset();
+       serializeJson(doc, Serial);
+    }
+  }
+  char topicTest[50];
+  sprintf(topicTest, "/AGP-APP/NODO/%d/TEST", std::stoi(Nodo.IdNodo));
+  if (strcmp(topic, topicTest) == 0)
+  {
+
+    Serial.println("Test");
   }
   char topicReset[50];
   sprintf(topicReset, "/AGP-APP/NODO/%d/RESET", std::stoi(Nodo.IdNodo));
@@ -79,9 +129,9 @@ void callback(char *topic, byte *payload, unsigned int length)
       Pid.FlowEnabled = doc["FlowEnabled"];
       Pid.RateError = doc["RateError"];
       Pid.Debounce = doc["Debounce"];
-      Pid.KP = doc["KP"];
-      Pid.KI = doc["KI"];
-      Pid.KD = doc["KD"];
+      Pid.KP = doc["KP"].as<double>();
+      Pid.KI = doc["KI"].as<double>();
+      Pid.KD = doc["KD"].as<double>();
       Pid.Deadband = doc["Deadband"];
       Pid.BrakePoint = doc["BrakePoint"];
       Pid.UseMultiPulses = doc["UseMultiPulses"];
@@ -164,4 +214,24 @@ void SendMotor(PubSubClient &client)
   const char *topicChar = topic;
   // Publicar el mensaje MQTT
   client.publish(topicChar, jsonString);
+}
+
+void SendMotorStatus(PubSubClient &client)
+{
+
+  StaticJsonDocument<768> json;
+
+  json["RPM"] = RPM;
+  json["PPM"] = PPM;
+  json["PWM"] = Pid.pwmSetting;
+  json["SetPoint"] = Cal.SetPoint;
+  
+  char jsonString[200];
+  serializeJson(json, jsonString);
+  char topic[50];
+  sprintf(topic, "/NODO/%d/MOTOR/STATUS", std::stoi(Nodo.IdNodo));
+  const char *topicChar = topic;
+  // Publicar el mensaje MQTT
+  client.publish(topicChar, jsonString);
+  //printTuningParameters();
 }

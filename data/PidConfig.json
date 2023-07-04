@@ -1,13 +1,17 @@
 {
   "FlowEnabled": false,
   "RateError": 0,
-  "Debounce": 0,
-  "KP": 0.0,
+  "Debounce": 3,
+  "KP": 0.05,
   "KI": 0.0,
   "KD": 0.0,
-  "Deadband": 0,
+  "Deadband": 0.5,
   "BrakePoint": 0,
   "UseMultiPulses": true,
-  "FlowOnDirection": "HIGH",
-  "FlowPin": 3
+  "FlowOnDirection": "LOW",
+  "FlowPin": 21,
+  "pwmSetting":0,
+  "IntegralUpperLimit":0,
+  "IntegralLowerLimit":0,
+  "DerivativeFilter" :0
 }

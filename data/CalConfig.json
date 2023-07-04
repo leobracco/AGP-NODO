@@ -1,8 +1,9 @@
 {
+  "dosagePerHectare":80000,
   "RateSetting": 0,
   "TotalPulses": 0,
-  "MeterCal": 0,
+  "MeterCal": 0.03333333333,
   "ManualAdjust": 0,
-  "UPM": 0,
-  "Working_Width": 1
+  "UPM": 10,
+  "Working_Width": 0.7
 }
