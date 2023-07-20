@@ -9,6 +9,7 @@ extern const uint16_t LOOP_TIME; // in msec = 20hz
 extern uint32_t LoopLast;
 
 extern bool AutoOn;
+extern bool DEBUG;
 extern bool MasterOn;
 
 typedef uint8_t byte;
@@ -31,6 +32,7 @@ struct NodoConfig
 	char IdSection[10];
 	char IdSeed[10];
 	char Version[10];
+	bool Active;
 	uint8_t SeedPin;		 // Pin del sensor de semilla
 };
 
@@ -53,6 +55,7 @@ struct PidConfig
 {
 	bool FlowEnabled;		 // FLAG que indica si el sensor de flujo está habilitado
 	float RateError;		 // Error de la velocidad actual con respecto a la velocidad objetivo
+	float ErrorPercent;
 	uint8_t Debounce;		 // Tiempo de debounce para el sensor de flujo
 	double KP;				 // Constante proporcional del controlador PID
 	double KI;				 // Constante integral del controlador PID
@@ -72,15 +75,24 @@ struct PidConfig
 
 struct CalConfig
 {
-	double SetPoint;	  // Velocidad objetivo del motor en UPM
-	uint32_t TotalPulses; // Total de pulsos del sensor de flujo
-	float MeterCal;		  // Calibración del medidor
-	float ManualAdjust;	  // Ajuste manual de la velocidad
-	float UPM;			  // Unidades por minuto (UPM) de la velocidad actual del motor
-	float Working_Width;
-	float DosePerPulse;
-	float DosePerUnit;
-	float dosagePerHectare;
+	bool Auto;
+	float ManualPWM;
+  	float SetPoint;
+  	float MinimumDose;
+   	float Working_Width;
+  	float PulsePerRev;
+  	float HolesPerPlate;
+  	float DosePerUnit;
+  	float SeedsPerMeter;
+  	float SeedsPerHectare;
+  	float KilosPerHectare;
+  	float LitersPerHectare;
+	bool SampleDose;
+	float MaxTurns;
+  	double PWMMotor;
+	float TotalPulses;
+	float UPM;
+
 	
 };
 
@@ -94,11 +106,20 @@ struct MotorConfig
 	float MaxPWM;	  // Valor máximo del PWM
 };
 
+struct SeedConfig
+{
+
+	byte PlantingType; // Tipo de siembra (0 gruesa, 1 fina)
+	uint8_t SeedPin;   // Pin del sensor de semilla
+	uint8_t Debounce; //Tiempo de debounce para el sensor de semilla
+
+};
 extern PidConfig Pid;
 extern MotorConfig Motor;
 extern CalConfig Cal;
 extern NodoConfig Nodo;
 extern MQTTConfig MQTTConf;
 extern WifiConfig WifiConf;
+extern SeedConfig Seed;
 extern float speedKmH;
 #endif // CONFIG_H

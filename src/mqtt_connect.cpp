@@ -20,7 +20,7 @@ void callback(char *topic, byte *payload, unsigned int length)
 
   DynamicJsonDocument doc(2048);
   DeserializationError error = deserializeJson(doc, payload);
-  Serial.println("Inresa al callback");
+  
 
   if (error)
   {
@@ -31,30 +31,29 @@ void callback(char *topic, byte *payload, unsigned int length)
 
   if (strcmp(topic, "/AGP-UDP/SECCIONES") == 0)
   {
-    int secciones[64];
 
-    for (int i = 0; i < 64; i++)
-    {
+    if (doc[String(Nodo.IdSection)] == 0)
+      Nodo.Active = false;
+    else
+      Nodo.Active = true;
 
-      secciones[i] = doc[String(i + 1)];
-      Serial.print("Seccion ");
-      Serial.print((i + 1));
-      Serial.print(":");
-      Serial.println(secciones[i]);
-    }
+    speedKmH = doc["speedKmH"];
   }
-  if (strcmp(topic, "/AGP-UDP/VELOCIDAD") == 0)
+  /*if (strcmp(topic, "/AGP-UDP/VELOCIDAD") == 0)
   {
     float angulo = doc["angulo_giro"];
     speedKmH = doc["velocidad"];
-    Serial.print("Velocidad: ");
-    Serial.println((speedKmH));
-    Serial.print("Angulo de giro");
-    Serial.println(angulo);
-  }
+    if (DEBUG)
+    {
+      Serial.print("Velocidad: ");
+      Serial.println((speedKmH));
+      Serial.print("Angulo de giro");
+      Serial.println(angulo);
+    }
+  }*/
 
   char topicMotor[50];
-  sprintf(topicMotor, "/AGP-APP/NODO/%d/MOTOR", std::stoi(Nodo.IdNodo));
+  sprintf(topicMotor, "/NODO/MOTOR/%d/MOTOR", std::stoi(Nodo.IdNodo));
   if (strcmp(topic, topicMotor) == 0)
   {
 
@@ -65,21 +64,43 @@ void callback(char *topic, byte *payload, unsigned int length)
       Motor.MaxPWM = doc["MaxPWM"];
       Motor.MinPWM = doc["MinPWM"];
       Motor.PWMPin = doc["PWMPin"];
-       pid.setOutputRange(Motor.MinPWM, Motor.MaxPWM);
+      //pid.SetOutputLimits(Motor.MinPWM, Motor.MaxPWM);
     }
   }
   char topicCal[50];
-  sprintf(topicCal, "/AGP-APP/NODO/%d/CALIBRACION", std::stoi(Nodo.IdNodo));
+  sprintf(topicCal, "/NODO/MOTOR/%d/CALIBRACION", std::stoi(Nodo.IdNodo));
   if (strcmp(topic, topicCal) == 0)
   {
 
     if (saveConfig(doc, "/CalConfig.json"))
     {
-      Serial.print("CAl");
+      Cal.Auto = doc["Auto"];
+      Cal.ManualPWM = doc["ManualPWM"];
+      Cal.SetPoint = doc["SetPoint"];
+      Cal.MinimumDose = doc["MinimumDose"];
+      Cal.Working_Width = doc["Working_Width"];
+      Cal.PulsePerRev = doc["PulsePerRev"];
+      Cal.HolesPerPlate = doc["HolesPerPlate"];
+      Cal.DosePerUnit = Cal.HolesPerPlate / Cal.PulsePerRev;
+      Cal.SeedsPerMeter = doc["SeedsPerMeter"];
+      Cal.SeedsPerHectare = doc["SeedsPerHectare"];
+      Cal.KilosPerHectare = doc["KilosPerHectare"];
+      Cal.LitersPerHectare = doc["LitersPerHectare"];
     }
   }
+  char topicSample[50];
+  sprintf(topicSample, "/NODO/MOTOR/%d/SampleDose", std::stoi(Nodo.IdNodo));
+  if (strcmp(topic, topicSample) == 0)
+  {
+      Cal.SampleDose=true;
+      Cal.MaxTurns=doc["MaxTurns"];
+      Cal.PWMMotor=doc["PWMMotor"];
+      Cal.TotalPulses=0;
+      
+
+  }
   char topicLive[50];
-  sprintf(topicLive, "/AGP-APP/NODO/%d/LIVE", std::stoi(Nodo.IdNodo));
+  sprintf(topicLive, "/NODO/MOTOR/%d/LIVE", std::stoi(Nodo.IdNodo));
   if (strcmp(topic, topicLive) == 0)
   {
 
@@ -98,20 +119,20 @@ void callback(char *topic, byte *payload, unsigned int length)
       Pid.FlowOnDirection = LOW;
       Pid.FlowPin = 21;
       Pid.pwmSetting = 0;
-      pid.setGains(Pid.KP, Pid.KI, Pid.KD); 
-      pid.reset();
-       serializeJson(doc, Serial);
+      //pid.SetTunings(Pid.KP, Pid.KI, Pid.KD);
+      //pid.reset();
+      serializeJson(doc, Serial);
     }
   }
   char topicTest[50];
-  sprintf(topicTest, "/AGP-APP/NODO/%d/TEST", std::stoi(Nodo.IdNodo));
+  sprintf(topicTest, "/NODO/MOTOR/%d/TEST", std::stoi(Nodo.IdNodo));
   if (strcmp(topic, topicTest) == 0)
   {
 
     Serial.println("Test");
   }
   char topicReset[50];
-  sprintf(topicReset, "/AGP-APP/NODO/%d/RESET", std::stoi(Nodo.IdNodo));
+  sprintf(topicReset, "/NODO/MOTOR/%d/RESET", std::stoi(Nodo.IdNodo));
   if (strcmp(topic, topicReset) == 0)
   {
 
@@ -119,24 +140,24 @@ void callback(char *topic, byte *payload, unsigned int length)
     ESP.restart();
   }
   char topicPID[50];
-  sprintf(topicPID, "/AGP-APP/NODO/%d/PID", std::stoi(Nodo.IdNodo));
+  sprintf(topicPID, "/NODO/MOTOR/%d/PidConfig", std::stoi(Nodo.IdNodo));
   if (strcmp(topic, topicPID) == 0)
   {
 
     if (saveConfig(doc, "/PidConfig.json"))
     {
       Serial.print("Config PID");
-      Pid.FlowEnabled = doc["FlowEnabled"];
-      Pid.RateError = doc["RateError"];
-      Pid.Debounce = doc["Debounce"];
       Pid.KP = doc["KP"].as<double>();
       Pid.KI = doc["KI"].as<double>();
       Pid.KD = doc["KD"].as<double>();
-      Pid.Deadband = doc["Deadband"];
-      Pid.BrakePoint = doc["BrakePoint"];
-      Pid.UseMultiPulses = doc["UseMultiPulses"];
+       Pid.Deadband = doc["Deadband"];
       Pid.FlowOnDirection = doc["FlowOnDirection"];
       Pid.FlowPin = doc["FlowPin"];
+     
+      //pid.SetTunings(Pid.KP, Pid.KI, Pid.KD);
+      
+      //printTuningParameters();
+      
     }
   }
 }
@@ -155,13 +176,14 @@ void connectToMQTT(WiFiClient &espClient, PubSubClient &client)
       Serial.println("Conexión exitosa");
       Serial.print("Se suscribe a:");
 
-      client.subscribe("/AGP-UDP/#");
+      // client.subscribe("/AGP-UDP/#");
+      client.subscribe("/AGP-UDP/SECCIONES");
 
       Serial.print("NODO ID");
       Serial.println(Nodo.IdNodo);
 
       char topic[50];
-      sprintf(topic, "/AGP-APP/NODO/%d/#", std::stoi(Nodo.IdNodo));
+      sprintf(topic, "/NODO/MOTOR/%d/#", std::stoi(Nodo.IdNodo));
       const char *topicChar = topic;
       client.subscribe(topicChar);
     }
@@ -219,19 +241,27 @@ void SendMotor(PubSubClient &client)
 void SendMotorStatus(PubSubClient &client)
 {
 
-  StaticJsonDocument<768> json;
+  StaticJsonDocument<1024> json;
 
-  json["RPM"] = RPM;
+  json["RPM"] = PPM/600;
   json["PPM"] = PPM;
-  json["PWM"] = Pid.pwmSetting;
+  json["PWM"] = Cal.PWMMotor;
   json["SetPoint"] = Cal.SetPoint;
-  
-  char jsonString[200];
+  json["SeedsPerMeter"] = Cal.SeedsPerMeter;
+  json["KilosPerHectare"] = Cal.KilosPerHectare;
+  json["LitersPerHectare"] = Cal.LitersPerHectare;
+  json["SeedsPerHectare"] = Cal.SeedsPerHectare;
+  json["TotalPulses"] = Cal.TotalPulses;
+  json["Error"] = Pid.RateError;
+ 
+  json["PWMMotor"]=Cal.PWMMotor;
+   
+  char jsonString[256];
   serializeJson(json, jsonString);
   char topic[50];
   sprintf(topic, "/NODO/%d/MOTOR/STATUS", std::stoi(Nodo.IdNodo));
   const char *topicChar = topic;
   // Publicar el mensaje MQTT
   client.publish(topicChar, jsonString);
-  //printTuningParameters();
+  // printTuningParameters();
 }

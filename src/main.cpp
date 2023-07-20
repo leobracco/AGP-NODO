@@ -44,6 +44,9 @@ const int pullupDelay = 5000; // Tiempo en milisegundos para detectar la presió
 ButtonConfiguration buttonConfig = {buttonPin, pullupDelay};
 ButtonPress buttonPress(buttonConfig);
 
+
+              // Pin del encoder
+
 void setup()
 {
   Serial.begin(115200);
@@ -51,6 +54,7 @@ void setup()
   MqttRed.on();
   WifiRed.on();
   buttonPress.setup();
+  //pinMode(ENCODER_PIN, INPUT_PULLUP);
   if (LittleFS.begin())
   {
     Serial.println(F("done."));
@@ -117,9 +121,11 @@ void setup()
   {
     // connectToMQTT(espClient, client);
     // setup_interrupciones();
-    Serial.println("COnfiguracion de interrupciones");
+    //attachInterrupt(digitalPinToInterrupt(ENCODER_PIN), ISR0, FALLING);
     setup_rate();
-    setup_pid();
+    Serial.println("COnfiguracion de interrupciones");
+    //setup_rate();
+    //setup_pid();
     setup_control();
   }
 }
@@ -170,7 +176,7 @@ void loop()
       WifiGreen.on();
 
       client.loop();
-
+      
       loop_control();
       
 

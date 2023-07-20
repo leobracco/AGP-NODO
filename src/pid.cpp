@@ -4,45 +4,137 @@
 
 #include <rate.h>
 #include <control.h>
-#include <AutoPID.h>
 
-#define MIN_OUTPUT Motor.MinPWM
-#define MAX_OUTPUT Motor.MaxPWM
 
 double input, output, setPoint;
-AutoPID pid(&input, &setPoint, &output, MIN_OUTPUT, MAX_OUTPUT, Pid.KP, Pid.KI, Pid.KD);
+// PID pid(&input, &output, &setPoint,  Pid.KP, Pid.KI, Pid.KD, DIRECT);
 
-void setup_pid()
-{
-  
-  //pid.setBangBang(5); // Valor de histéresis para el control bang-bang
-  pid.setTimeStep(75); // Intervalo de tiempo entre cada iteración del PID (ms
-  pid.setOutputRange(MIN_OUTPUT, MAX_OUTPUT);
-  pid.setGains(Pid.KP, Pid.KI, Pid.KD); 
+unsigned long CurrentAdjustTime;
+float ErrorPercentLast;
+float ErrorPercentCum;
+float Integral;
+float LastPWM;
+float PIDmotor() {
+  float Result = 0.0f;
+  float ErrorPercent = 0.0f;
+
+  if (Cal.SetPoint > 0.0f) {
+    Result = LastPWM;
+    ErrorPercent = Pid.RateError / Cal.SetPoint * 10.0f;
+    Pid.ErrorPercent = ErrorPercent;
+
+    if (fabs(ErrorPercent) > Pid.Deadband) {
+
+      Result += Pid.KP * ErrorPercent / 25.5f;
+      Serial.print("KP: ");
+      Serial.print(Pid.KP);
+      Serial.print(" ErrorPercent: ");
+      Serial.print(ErrorPercent);
+      Serial.print(" Result: ");
+      Serial.println(Result);
+      
+      unsigned long elapsedTime = millis() - CurrentAdjustTime;
+      CurrentAdjustTime = millis();
+
+      // Anti-windup: Limitar el término integral solo si no se alcanzan los límites de salida
+      if (Result >= Motor.MinPWM && Result <= Motor.MaxPWM) {
+        Integral += Pid.KI * ErrorPercent * elapsedTime * 0.001f;
+        if (Integral > 10.0f) Integral = 10.0f;
+        if (Integral < -10.0f) Integral = -10.0f;
+        if (Pid.KI == 0.0f) {
+          Integral = 0.0f;
+        }
+      }
+      
+      // Integral windup: Reset the integral term if the output is saturated
+      if (Result < Motor.MinPWM || Result > Motor.MaxPWM) {
+        Integral = 0.0f;
+        // Si el resultado está fuera de los límites, ajustamos el valor para mantenerlo dentro del rango permitido
+        Result = constrain(Result, Motor.MinPWM, Motor.MaxPWM);
+      }
+
+      Result += Integral;
+
+      Result += Pid.KD * (ErrorPercent - ErrorPercentLast) / (elapsedTime * 0.001f) * 0.001f;
+
+      ErrorPercentLast = ErrorPercent;
+    }
+    else {
+      Integral = 0.0f;
+    }
+  }
+
+  LastPWM = Result;
+  return (int)Result;
 }
 
 
-
-void printTuningParameters()
+/*************************************************************/
+/****************VALVULA----------------------****************/
+/*************************************************************/
+int PIDvalve()
 {
-  
+    float Result = 0;
 
-  //Serial.print("Kp: ");
-  Serial.printf("KP: %.5f\n", pid.getKp());
-  Serial.printf("KI: %.5f\n", pid.getKi());
-  Serial.printf("KD: %.5f\n", pid.getKd());
-  Serial.print(", Output: ");
-  Serial.println(output);
-}
+    if (Cal.SetPoint > 0)
+    {
+        float ErrorPercent = Pid.RateError / Cal.SetPoint;
 
+        Pid.ErrorPercent = ErrorPercent;
+        if (abs(ErrorPercent) > (float)Pid.Deadband)
+        {
+            Result = Pid.KP * ErrorPercent;
 
+            unsigned long elapsedTime = millis() - CurrentAdjustTime;
+            CurrentAdjustTime = millis();
 
-void loop_pid()
-{
-  setPoint =  Cal.SetPoint;
+            ErrorPercentCum += ErrorPercent * (elapsedTime * 0.001);
 
-  
-  pid.run();
+            Integral += Pid.KI * ErrorPercentCum;
+            if (Integral > 10)
+                Integral = 10;
+            if (Integral < -10)
+                Integral = -10;
+            if (Pid.KI == 0)
+            {
+                Integral = 0;
+                ErrorPercentCum = 0;
+            }
 
-  //analogWrite(18, output);
+            Result += Integral;
+
+            Result += (float)Pid.KD * (ErrorPercent - ErrorPercentLast) / (elapsedTime * 0.001) * 0.001;
+
+            ErrorPercentLast = ErrorPercent;
+
+            bool IsPositive = (Result > 0);
+            Result = abs(Result);
+
+            if (Result < Motor.MinPWM)
+            {
+                Result = Motor.MinPWM;
+            }
+            else
+            {
+                if (abs(ErrorPercent) < (float)Pid.BrakePoint / 100.0)
+                {
+                    if (Result > Motor.MinPWM * 3.0)
+                        Result = Motor.MinPWM * 3.0;
+                }
+                else
+                {
+                    if (Result > Motor.MaxPWM)
+                        Result = Motor.MaxPWM;
+                }
+            }
+
+            if (!IsPositive)
+                Result *= -1;
+        }
+        else
+        {
+            Integral = 0;
+        }
+    }
+    return (int)Result;
 }

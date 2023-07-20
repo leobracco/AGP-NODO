@@ -1,0 +1,54 @@
+#include <Arduino.h>
+#include "config.h"
+#include <stdlib.h>
+
+#include <rate.h>
+#include <control.h>
+
+#include <PID_v1.h>
+#define MIN_OUTPUT Motor.MinPWM
+#define MAX_OUTPUT Motor.MaxPWM
+
+double input, output, setPoint;
+
+
+void printTuningParameters();
+PID pid(&input, &output, &setPoint,  Pid.KP, Pid.KI, Pid.KD, DIRECT);
+void setup_pid()
+{
+  
+ 
+  pid.SetSampleTime(5); // Intervalo de tiempo entre cada iteración del PID (ms
+  pid.SetOutputLimits(14, 200);
+  
+  //pid.SetTunings(Pid.KP, Pid.KI, Pid.KD); 
+  pid.SetMode(AUTOMATIC);
+  printTuningParameters();
+
+}
+
+
+
+void printTuningParameters()
+{
+  
+
+  //Serial.print("Kp: ");
+  Serial.printf("KP: %.5f\n", pid.GetKp());
+  Serial.printf("KI: %.5f\n", pid.GetKi());
+  Serial.printf("KD: %.5f\n", pid.GetKd());
+  Serial.print(", Output: ");
+  Serial.println(output);
+}
+
+
+
+void loop_pid()
+{
+   //Cal.SetPoint=setPoint;
+setPoint=Cal.SetPoint;
+  
+  pid.Compute();
+  Cal.PWMMotor=output;
+  //analogWrite(18, output);
+}

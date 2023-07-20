@@ -1,9 +1,19 @@
 {
-  "dosagePerHectare":80000,
-  "RateSetting": 0,
-  "TotalPulses": 0,
-  "MeterCal": 0.03333333333,
-  "ManualAdjust": 0,
-  "UPM": 10,
-  "Working_Width": 0.7
+  
+  "Auto": true ,
+  "ManualPWM": 0 ,
+  "SetPoint":0 ,
+  "MinimumDose":2 ,
+  "Working_Width":0.7,
+  "PulsePerRev":600,
+  "HolesPerPlate":20,
+  "DosePerUnit":0.03333333333,
+  "SeedsPerMeter":4,
+  "SeedsPerHectare":0,
+  "KilosPerHectare":0,
+  "LitersPerHectare":0,
+  "DosePer":"SeedsPerMeter",
+  "SampleDose":false,
+  "MaxTurns": 20,
+  "PWMMotor":10
 }

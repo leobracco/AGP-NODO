@@ -69,14 +69,14 @@ void ConfigPid()
     return;
   }
   Pid.BrakePoint = json["BrakePoint"];
-  Pid.Deadband = json["Deadband"];
+  Pid.Deadband =json["Deadband"];
   Pid.Debounce = json["Debounce"];
   Pid.FlowEnabled = json["FlowEnabled"];
   Pid.FlowOnDirection = json["FlowOnDirection"];
   Pid.FlowPin = json["FlowPin"];
-  Pid.KP = json["KP"].as<double>();
-  Pid.KI = json["KI"].as<double>();
-  Pid.KD = json["KD"].as<double>();
+  Pid.KP = json["KP"].as<float>();
+  Pid.KI = json["KI"].as<float>();
+  Pid.KD = json["KD"].as<float>();
   Pid.pwmSetting = json["pwmSetting"];
   Pid.RateError = json["RateError"];
   Pid.UseMultiPulses = json["UseMultiPulses"];
@@ -100,15 +100,30 @@ void ConfigCalibracion()
     Serial.println(error.f_str());
     return;
   }
-
-  Cal.ManualAdjust = json["ManualAdjust"];
-  Cal.MeterCal = json["MeterCal"];
+ 
+  
+  Cal.Auto = json["Auto"];
+  Cal.ManualPWM = json["ManualPWM"];
   Cal.SetPoint = json["SetPoint"];
-  Cal.TotalPulses = json["TotalPulses"];
-  Cal.UPM = json["UPM"];
+  Cal.MinimumDose = json["MinimumDose"];
   Cal.Working_Width = json["Working_Width"];
-  Cal.DosePerUnit = 20 / 600;
-  Cal.dosagePerHectare = 80000;
+  Cal.PulsePerRev = json["PulsePerRev"];
+  Cal.HolesPerPlate= json["HolesPerPlate"];
+  Cal.DosePerUnit = Cal.HolesPerPlate / Cal.PulsePerRev;
+  Cal.SeedsPerMeter=json["SeedsPerMeter"];
+  Cal.SeedsPerHectare=json["SeedsPerHectare"];
+  Cal.KilosPerHectare=json["KilosPerHectare"];
+  Cal.LitersPerHectare=json["LitersPerHectare"];
+  Cal.SampleDose=false;
+  Cal.MaxTurns=20;
+  Cal.PWMMotor=10;
+  Cal.TotalPulses=0;
+  Cal.UPM=0;
+  Serial.print("Pulsos por rev:");
+  Serial.println(Cal.PulsePerRev);
+
+
+
 }
 /**********************Carga las variables del Motor desde el Archivo MotorConfig.json*/
 void ConfigMotor()
@@ -128,8 +143,27 @@ void ConfigMotor()
   Motor.ControlType = json["ControlType"];
   Motor.DirPin = json["DirPin"];
   Motor.PWMPin = json["PWMPin"];
-  Motor.MinPWM = json["MinPWM"];
-  Motor.MaxPWM = json["MaxPWM"];
+  Motor.MinPWM = json["MinPWM"].as<float>();
+  Motor.MaxPWM = json["MaxPWM"].as<float>();
+}
+/**********************Carga las variables del Seed desde el Archivo SeedConfig.json*/
+void ConfigSeed()
+{
+  Serial.println("Ingresa a Config Seed...");
+
+  StaticJsonDocument<768> json;
+
+  DeserializationError error = deserializeJson(json, loadConfig("/SeedConfig.json"));
+  serializeJson(json, Serial);
+  if (error)
+  {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    return;
+  }
+  Seed.PlantingType = json["PlantingType"];
+  Seed.SeedPin = json["SeedPin"];
+  Seed.Debounce = json["Debounce"];
 }
 /**********************Carga las variables del Nodo desde el Archivo NodoConfig.json*/
 void ConfigureNodo()
@@ -151,27 +185,78 @@ void ConfigureNodo()
   strcpy(Nodo.IdSection, json["IdSection"]);
   strcpy(Nodo.IdSeed, json["IdSeed"]);
   strcpy(Nodo.Version, json["Version"]);
+  Nodo.Active = false;
 }
 /**********************Carga las variables del Mqtt desde el Archivo MqttConfig.json*/
 void ConfigureMqtt()
 {
   Serial.println("Ingresa a Config Nodo...");
 
-    
-    int section = Sensor.Section; // Asignamos el valor de Sensor.Section a una variable entera
+  StaticJsonDocument<768> json;
 
-    sprintf(mqtt_topic, "%s%d", MQTT_TOPIC, section); // Concatenamos MQTT_TOPIC con el valor de section y lo almacenamos en mqtt_topic
-    
- 
+  DeserializationError error = deserializeJson(json, loadConfig("/MqttConfig.json"));
+  serializeJson(json, Serial);
+  if (error)
+  {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    return;
+  }
+
+  strcpy(MQTTConf.BrokerAddress, json["BrokerAddress"]);
+  strcpy(MQTTConf.Port, json["Port"]);
 }
+/**********************Carga las variables del Wifi desde el Archivo WifiConfig.json*/
+void ConfigureWifi()
+{
+  Serial.println("Ingresa a Config Wifi...");
 
-ModuleConfig MDL = {
-  .ID = 1,
-  .FlowOnDirection = HIGH,
-  .Debounce = 10
-};
+  StaticJsonDocument<768> json;
+
+  DeserializationError error = deserializeJson(json, loadConfig("/WifiConfig.json"));
+  serializeJson(json, Serial);
+  if (error)
+  {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    return;
+  }
+  strcpy(WifiConf.SSID, json["SSID"]);
+  strcpy(WifiConf.Password, json["Password"]);
+  // strcpy(WifiConf.UrlOTA, json["UrlOTA"]);
+  // strcpy(WifiConf.PasswordOTA, json["PasswordOTA"]);
+}
+void ResetConfig()
+{
+  DynamicJsonDocument doc(256);
+  DynamicJsonDocument docmqtt(256);
+
+  doc["SSID"] = "-";
+  doc["Password"] = "-";
+  docmqtt["BrokerAddress"] = "192.168.1.1";
+  docmqtt["Port"] = "1883";
+
+  if (saveConfig(doc, "/WifiConfig.json"))
+  {
+    Serial.print("Config Save");
+
+    strcpy(WifiConf.SSID, doc["SSID"]);
+    strcpy(WifiConf.Password, doc["Password"]);
+  }
+  if (saveConfig(docmqtt, "/MqttConfig.json"))
+  {
+    Serial.print("ConfigMqtt Save");
+
+    strcpy(MQTTConf.BrokerAddress, docmqtt["BrokerAddress"]);
+    strcpy(MQTTConf.Port, docmqtt["Port"]);
+  }
+
+  delay(1000);
+  ESP.restart();
+}
 bool AutoOn = true;
 bool MasterOn = false;
+bool DEBUG = false;
 const uint16_t LOOP_TIME = 50; // in msec = 20hz
 uint32_t LoopLast = LOOP_TIME;
 float speedKmH;

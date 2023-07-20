@@ -10,7 +10,7 @@ const float PULSES_PER_REVOLUTION = 600.0f; // Pulsos por revolución del encode
 double RPM;
 double PPM;
 volatile unsigned long pulseCount = 0;
-unsigned long lastInterruptTime = 0;
+unsigned long lastInterruptTime = 0,lastSecondTime = 0;
 
 void handleEncoderInterrupt()
 {
@@ -23,33 +23,38 @@ void setup_rate()
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN), handleEncoderInterrupt, RISING);
 }
 
+
 void loop_rate()
 {
   unsigned long currentMillis = millis();
-  unsigned long elapsedTime = currentMillis - lastInterruptTime;
+  unsigned long elapsedTime100 = currentMillis - lastInterruptTime;
+  unsigned long elapsedTime1000 = currentMillis - lastSecondTime;
 
-  if (elapsedTime >= 100) // Realizar los cálculos cada 100 milisegundos
+  if (elapsedTime100 >= 100) // Realizar los cálculos cada 100 milisegundos
   {
     // Calcular las RPM
-    RPM = (pulseCount / PULSES_PER_REVOLUTION) * (60.0f / (elapsedTime / 1000.0f));
-    PPM = pulseCount * (60.0f / (elapsedTime / 1000.0f));
-
-    // Resto del código de impresión y manipulación de datos
-        //Print PPM ,RPM SetPoint
+    RPM = (pulseCount / PULSES_PER_REVOLUTION) * (60.0f / (elapsedTime100 / 1000.0f));
+    PPM = pulseCount * (60.0f / (elapsedTime100 / 1000.0f));
+    input=PPM;
+   /*if (DEBUG)
+    
     Serial.print("PPM: ");
     Serial.print(PPM);
     Serial.print(" RPM: ");
     Serial.print(RPM);
     Serial.print(" SetPoint: ");
     Serial.print(Cal.SetPoint/600);
-    Serial.print(" RateError: ");
-    Serial.print( Pid.RateError);
-    Serial.print(" Debounce: ");
-    Serial.println( Pid.Debounce);
-    
-    Pid.RateError = Cal.SetPoint/600 - RPM;
+    Serial.print(" RateError: ");*/
+    Cal.TotalPulses+=pulseCount;
     pulseCount = 0;
-    SendMotorStatus(client);
     lastInterruptTime = currentMillis;
   }
+
+  if (elapsedTime1000 >= 500) // Realizar las acciones adicionales cada 1 segundo
+  {
+    SendMotorStatus(client);
+
+    lastSecondTime = currentMillis;
+  }
 }
+

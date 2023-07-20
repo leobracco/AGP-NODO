@@ -7,28 +7,43 @@
 
 void loop_control()
 {
-    loop_pid();
+
     if (millis() - LoopLast >= LOOP_TIME)
     {
-         Cal.SetPoint = CalcularDosis();
 
+
+        Cal.SetPoint = CalcularDosis();
+       
         loop_rate();
-      
-            
-      
-        
+        //loop_pid();
+
+        Pid.RateError = Cal.SetPoint - PPM;
         LoopLast = millis();
         // GetUPM();
-       
+        Cal.PWMMotor=PIDmotor();
         Pid.FlowEnabled =
             ((Cal.SetPoint > 0 && MasterOn) ||
              ((Motor.ControlType == 4) &&
               (Cal.SetPoint > 0)) ||
              (!AutoOn && MasterOn));
-        if (Cal.SetPoint > 0)
-            analogWrite(18, output);
+        if (Cal.SetPoint > 0 && Nodo.Active && !Cal.SampleDose)
+        {
+            // Cal.PWMMotor= PIDmotor();
+          
+            analogWrite(18,Cal.PWMMotor );
+        }
         else
-            analogWrite(18, 0);
+        {
+            if (Cal.SampleDose && (Cal.TotalPulses / Cal.PulsePerRev <= Cal.MaxTurns))
+            {
+                analogWrite(18, Cal.PWMMotor);
+            }
+            else
+            {
+                analogWrite(18, 0);
+                Cal.SampleDose = false;
+            }
+        }
     }
 }
 
@@ -39,12 +54,12 @@ void setup_control()
 }
 float CalcularDosis()
 {
-    float velocidadMTS = speedKmH * 1000;
-    float segundosenCienMetros = 100 * 3600 / velocidadMTS;
-    float laborenCienMetros = Cal.Working_Width * 100 / 10000;
-    float dosisCienmetros = laborenCienMetros * Cal.dosagePerHectare;
-    float dosisenSegundos = 60 * dosisCienmetros / segundosenCienMetros;
-    float DosisPulsos = dosisenSegundos / Cal.MeterCal;
 
-    return DosisPulsos;
+    float MetrosEnSegundos = speedKmH / 3.6;
+    float UnMetroEnSegundos = 1 / MetrosEnSegundos;
+    float SemillasPorSegundo = MetrosEnSegundos * 4;
+    float SemillasPorMinuto = SemillasPorSegundo * 60;
+    float DosisPPM = SemillasPorMinuto / 20 * 600;
+
+    return DosisPPM;
 }
